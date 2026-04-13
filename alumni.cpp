@@ -21,12 +21,11 @@ private:
 	int uniqueCode;
 	float grade;
 
-	void orderRecord(std::fstream&);
-
 public:
 	void record();
 	void show();
 	void searchCode(int);
+	void orderRecord();
 
 	void modify(int);
 	void erase(int);
@@ -68,15 +67,19 @@ int main()
 			std::cout << "\nSelection out of range."
 					  << " Enter a number from 1 to 5.\n\n";
 		}
+		std::cin.ignore();
 
+		//	Swtich and situations
 		switch(cursorPosition)
 		{
 		case 1:
 			oneStudent.record();
+			oneStudent.orderRecord();
 			// Stuff has been added.
 			break;
 		case 2:
 			oneStudent.show();
+			oneStudent.orderRecord();
 			break;
 		}
 
@@ -151,7 +154,7 @@ void Student::record()
 	studentFile.close();
 }
 	//	Order records
-void Student::orderRecord(std::fstream& file)
+void Student::orderRecord()
 {
 	char tmpName[15];
 	strcpy(tmpName, name);
@@ -164,11 +167,31 @@ void Student::orderRecord(std::fstream& file)
 	int tmpUniqueCode = uniqueCode;
 	float tmpGrade = grade;
 
-	file.seekg(0, std::ios::end);
-	std::streampos size = file.tellg();
+	std::fstream studentFile("students.txt", std::ios::in | std::ios::out);
+
+	studentFile.seekg(0, std::ios::end);
+	std::streampos size = studentFile.tellg();
 
 	int count = size / sizeof(Student);
-	std::cout << "This file has " << size << " entries.\n";
+	std::cout << "This file has " << count << " entries.\n";
+
+	if(count == 0)	//	File is empty? Then continue and write.
+	{
+		studentFile.close();
+		return;
+	}
+
+	int* allCodes = new int[count];
+	int positionToSearch = 0;
+	while(positionToSearch < count && allCodes[positionToSearch] < tmpUniqueCode)
+	{
+		positionToSearch ++;
+	}
+
+	
+
+	studentFile.close();
+	delete[] allCodes;
 }
 
 	//	Show
@@ -176,14 +199,9 @@ void Student::show()
 {
 	std::fstream studentFile("students.txt", std::ios::in|std::ios::out);
 
-	std::streampos size = studentFile.tellg();
-	if(size == 0)
-	{
-		std::cout << "\nThere's no record of any students here.\n\n";
-	}
 	if(!studentFile.good())
 	{
-		std::cout << "\nDamaged or corrupted file.\n\n";
+		std::cout << "\nDamaged, corrupted or inexistant file.\n\n";
 	}else
 	{
 		while (studentFile.read((char*)this, sizeof(*this)))
