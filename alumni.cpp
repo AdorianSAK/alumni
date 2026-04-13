@@ -73,6 +73,10 @@ int main()
 		{
 		case 1:
 			oneStudent.record();
+			// Stuff has been added.
+			break;
+		case 2:
+			oneStudent.show();
 			break;
 		}
 
@@ -127,10 +131,10 @@ void Student::record()
 	}
 
 		//	Creation of file
-	std::fstream studentFile("students.txt", std::ios::app | std::ios::binary);
+	std::ofstream studentFile("students.txt", std::ios::app | std::ios::binary);
 	
 		//	Ordering logic goes here if needd
-	studentFile.seekg(0, std::ios::end);
+	/*studentFile.seekg(0, std::ios::end);
 	std::streampos size = studentFile.tellg();
 
 	if(size != sizeof(Student))
@@ -139,7 +143,7 @@ void Student::record()
 		std::cout << "This file has more than one student record.\n";
 		orderRecord(studentFile);
 	}
-
+	*/
 		//	Writing of data into the file
 	studentFile.write((char*) this, sizeof(*this));
 
@@ -172,9 +176,14 @@ void Student::show()
 {
 	std::fstream studentFile("students.txt", std::ios::in|std::ios::out);
 
+	std::streampos size = studentFile.tellg();
+	if(size == 0)
+	{
+		std::cout << "\nThere's no record of any students here.\n\n";
+	}
 	if(!studentFile.good())
 	{
-		std::cout << "\nDamaged or corrupted file.\n";
+		std::cout << "\nDamaged or corrupted file.\n\n";
 	}else
 	{
 		while (studentFile.read((char*)this, sizeof(*this)))
