@@ -49,8 +49,7 @@ int main()
 	int cursorPosition;
 
 	Student oneStudent;
-	oneStudent.record();
-	oneStudent.show();
+	//oneStudent.show();
 
 	//	Menu loop
 	do
@@ -73,6 +72,7 @@ int main()
 		switch(cursorPosition)
 		{
 		case 1:
+			oneStudent.record();
 			break;
 		}
 
