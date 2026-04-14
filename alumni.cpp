@@ -79,7 +79,6 @@ int main()
 			break;
 		case 2:
 			oneStudent.show();
-			oneStudent.orderRecord();
 			break;
 		}
 
@@ -134,7 +133,7 @@ void Student::record()
 	}
 
 		//	Creation of file
-	std::ofstream studentFile("students.txt", std::ios::app | std::ios::binary);
+	//std::ofstream studentFile("students.txt", std::ios::app | std::ios::binary);
 	
 		//	Ordering logic goes here if needd
 	/*studentFile.seekg(0, std::ios::end);
@@ -148,10 +147,10 @@ void Student::record()
 	}
 	*/
 		//	Writing of data into the file
-	studentFile.write((char*) this, sizeof(*this));
+	//studentFile.write((char*) this, sizeof(*this));
 
 		//	Closing the file
-	studentFile.close();
+	//studentFile.close();
 }
 	//	Order records
 void Student::orderRecord()
@@ -167,28 +166,85 @@ void Student::orderRecord()
 	int tmpUniqueCode = uniqueCode;
 	float tmpGrade = grade;
 
-	std::fstream studentFile("students.txt", std::ios::in | std::ios::out);
+	std::fstream studentFile("students.txt", std::ios::in | std::ios::out | std::ios::binary);
+
+	if (!studentFile)
+	{
+	    // create file if not there
+	    std::ofstream create("students.txt", std::ios::binary);
+	    create.close();
+
+	    // reopen to keep working on it
+	    studentFile.open("students.txt",
+	        std::ios::in | std::ios::out | std::ios::binary);
+	}
 
 	studentFile.seekg(0, std::ios::end);
 	std::streampos size = studentFile.tellg();
 
-	int count = size / sizeof(Student);
-	std::cout << "This file has " << count << " entries.\n";
+	int count;
+
+	if(size <= 0)
+	{
+		count = 0;
+	}else
+	{
+		count = size / sizeof(Student);
+	}
+
+	//std::cout << "This file has " << count << " entries.\n";
 
 	if(count == 0)	//	File is empty? Then continue and write.
 	{
+		studentFile.write((char*) this, sizeof(*this));
 		studentFile.close();
 		return;
 	}
 
 	int* allCodes = new int[count];
-	int positionToSearch = 0;
-	while(positionToSearch < count && allCodes[positionToSearch] < tmpUniqueCode)
+	int p = 0;
+	studentFile.clear();	//	Clears EOF status if is gotten
+	studentFile.seekg(0, std::ios::beg);	//	We restart the read pointer
+	while(studentFile.read((char*)this, sizeof(*this)))
 	{
-		positionToSearch ++;
+		allCodes[p] = uniqueCode;
+		p ++;
 	}
 
+	p = 0;
+	while (p < count && allCodes[p] < tmpUniqueCode)
+	{
+	    p++;	//	Location of the new record
+	}
+
+	int lastIndex = count - 1;
 	
+	for (int i = lastIndex; i >= p; i--)
+	{
+	    // read record at i
+	    studentFile.seekg(i * sizeof(Student), std::ios::beg);
+	    studentFile.read((char*)this, sizeof(*this));
+
+	    studentFile.clear();
+
+	    // write it at i+1
+	    studentFile.seekp((i + 1) * sizeof(Student), std::ios::beg);
+	    studentFile.write((char*)this, sizeof(*this));
+
+	    studentFile.clear();
+	}
+
+	//	Reasignation of object
+	strcpy(name, tmpName);
+	strcpy(lastNameA, tmpLastNameA);
+	strcpy(lastNameB, tmpLastNameB);
+	strcpy(career, tmpCareer);
+	uniqueCode = tmpUniqueCode;
+	grade = tmpGrade;
+
+	//	Write object to designed place.
+	studentFile.seekp(p * sizeof(Student), std::ios::beg);
+	studentFile.write((char*)this, sizeof(*this));
 
 	studentFile.close();
 	delete[] allCodes;
@@ -197,21 +253,36 @@ void Student::orderRecord()
 	//	Show
 void Student::show()
 {
-	std::fstream studentFile("students.txt", std::ios::in|std::ios::out);
+	std::ifstream studentFile("students.txt", std::ios::in);
 
 	if(!studentFile.good())
 	{
 		std::cout << "\nDamaged, corrupted or inexistant file.\n\n";
 	}else
 	{
-		while (studentFile.read((char*)this, sizeof(*this)))
+		studentFile.seekg(0, std::ios::end);
+		std::streampos	size = studentFile.tellg();
+
+		int count = size / sizeof(Student);
+
+		std::cout << "\nThis file has " << count << " student entries.\n\n";
+
+		studentFile.clear();
+		studentFile.seekg(0, std::ios::beg);
+
+		count = 1;
+
+		while(studentFile.read((char*)this, sizeof(*this)))
 		{
+			std::cout << "Etry " << count << '\n';
+
 		    std::cout << "Name: " << name << " " << lastNameA << " "
 		              << lastNameB << '\n'
 		              << "Code: " << uniqueCode << '\n'
 		              << "Carrer: " << career << '\n'
 		              << "Grade: " << grade << '\n'
 		              << "-----------------------------------------\n";
+		    count ++;
 		}
 	}
 	studentFile.close();
