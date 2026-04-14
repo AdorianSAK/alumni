@@ -26,6 +26,7 @@ public:
 	void show();
 	void searchCode(int);
 	void orderRecord();
+	void binarySearch();
 
 	void modify(int);
 	void erase(int);
@@ -76,6 +77,7 @@ int main()
 			oneStudent.record();
 			oneStudent.orderRecord();
 			// Stuff has been added.
+			std::cout << "\nStudent's record added successfully\n\n";
 			break;
 		case 2:
 			oneStudent.show();
@@ -175,8 +177,7 @@ void Student::orderRecord()
 	    create.close();
 
 	    // reopen to keep working on it
-	    studentFile.open("students.txt",
-	        std::ios::in | std::ios::out | std::ios::binary);
+	    studentFile.open("students.txt", std::ios::in | std::ios::out | std::ios::binary);
 	}
 
 	studentFile.seekg(0, std::ios::end);
@@ -286,6 +287,53 @@ void Student::show()
 		}
 	}
 	studentFile.close();
+}
+
+	//	Binary search
+void Student::binarySearch()
+{
+		std::ifstream studentFile("students.txt", std::ios::in | std::ios::binary);
+
+		if(!studentFile)
+		{
+			std::cout << "\nThere's no records here!\n\n";
+			studentFile.close();
+			return;
+		}
+
+		studentFile.seekg(0, std::ios::end);
+		std::streampos size = studentFile.tellg();
+
+		int arrayLength = size / sizeof(Student);
+		studentFile.clear();
+		studentFile.seekg(0, std::ios::beg);
+
+		int* array = new int[arrayLength];
+		int p;
+		while(studentFile.read((char*)this, sizeof(*this)))
+		{
+			array[i] = uniqueCode;
+			p ++;
+		}
+
+		std::string inputToSearch;
+		int validCode;
+		std::cout << "\nEnter a student's code to search\n";
+		while(true)
+		{
+			std::getline(std::cin, inputToSearch);
+			if(isValidInt(inputToSearch))
+			{
+				validCode = std::stoi(inputToSearch);
+				break;
+			}
+			std::cout << "Invalid code. Try again:\n";
+		}
+
+		//	ContinueHere
+
+		delete[] array;
+		studentFile.close();
 }
 
 //===
