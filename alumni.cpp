@@ -28,11 +28,11 @@ private:
 	float grade;
 
 public:
-	void record();
-	void show();
+	void record(int);
+	void show(int);
 	void searchCode(int);
 	void orderRecord();
-	void binarySearch();
+	void binarySearch(int);
 	void searchCareer();
 
 	void modify(int);
@@ -56,6 +56,8 @@ int main()
 	int cursorPosition;
 
 	Student oneStudent;
+
+	int entries = entriesCounter();
 	//oneStudent.show();
 
 	//	Menu loop
@@ -82,15 +84,15 @@ int main()
 		{
 		case 1:
 			oneStudent.record();
-			oneStudent.orderRecord();
+			oneStudent.orderRecord(entries);
 			// Stuff has been added.
 			std::cout << "\nStudent's record added successfully\n\n";
 			break;
 		case 2:
-			oneStudent.show();
+			oneStudent.show(entries);
 			break;
 		case 3:
-			oneStudent.binarySearch();
+			oneStudent.binarySearch(entries);
 			break;
 		case 4:
 			oneStudent.searchCareer();
@@ -169,7 +171,7 @@ void Student::record()
 	//studentFile.close();
 }
 	//	Order records
-void Student::orderRecord()
+void Student::orderRecord(int entries)
 {
 	char tmpName[15];
 	strcpy(tmpName, name);
@@ -184,45 +186,18 @@ void Student::orderRecord()
 
 	std::fstream studentFile("students.txt", std::ios::in | std::ios::out | std::ios::binary);
 
-	if (!studentFile)
-	{
-	    // create file if not there
-	    std::ofstream create("students.txt", std::ios::binary);
-	    create.close();
-
-	    // reopen to keep working on it
-	    studentFile.open("students.txt", std::ios::in | std::ios::out | std::ios::binary);
-	}
-
-	studentFile.seekg(0, std::ios::end);
-	std::streampos size = studentFile.tellg();
-
-	int count;
-
-	if(size <= 0)
-	{
-		count = 0;
-		//studentFile.write((char*) this, sizeof(*this));
-		//studentFile.close();
-		//return;
-	}else
-	{
-		count = size / sizeof(Student);
-	}
-
 	//std::cout << "This file has " << count << " entries.\n";
 
-	if(count == 0)	//	File is empty? Then continue and write.
+	if(entries == 0)	//	File is empty? Then continue and write.
 	{
 		studentFile.write((char*) this, sizeof(*this));
 		studentFile.close();
 		return;
 	}
 
-	int* allCodes = new int[count];
+	int* allCodes = new int[entries];
 	int p = 0;
-	studentFile.clear();	//	Clears EOF status if is gotten
-	studentFile.seekg(0, std::ios::beg);	//	We restart the read pointer
+
 	while(studentFile.read((char*)this, sizeof(*this)))
 	{
 		allCodes[p] = uniqueCode;
@@ -230,12 +205,12 @@ void Student::orderRecord()
 	}
 
 	p = 0;
-	while (p < count && allCodes[p] < tmpUniqueCode)
+	while (p < entries && allCodes[p] < tmpUniqueCode)
 	{
 	    p++;	//	Location of the new record
 	}
 
-	int lastIndex = count - 1;
+	int lastIndex = entries - 1;
 	
 	for (int i = lastIndex; i >= p; i--)
 	{
@@ -269,7 +244,7 @@ void Student::orderRecord()
 }
 
 	//	Show
-void Student::show()
+void Student::show(int entries)
 {
 	std::ifstream studentFile("students.txt", std::ios::in);
 
@@ -278,17 +253,13 @@ void Student::show()
 		std::cout << "\nDamaged, corrupted or inexistant file.\n\n";
 	}else
 	{
-		studentFile.seekg(0, std::ios::end);
-		std::streampos	size = studentFile.tellg();
 
-		int count = size / sizeof(Student);
-
-		std::cout << "\nThis file has " << count << " student entries.\n\n";
+		std::cout << "\nThis file has " << entries << " student entries.\n\n";
 
 		studentFile.clear();
 		studentFile.seekg(0, std::ios::beg);
 
-		count = 1;
+		int count = 1;
 
 		while(studentFile.read((char*)this, sizeof(*this)))
 		{
@@ -307,16 +278,15 @@ void Student::show()
 }
 
 	//	Binary search
-void Student::binarySearch()
+void Student::binarySearch(int entries)
 {
-	std::ifstream studentFile("students.txt", std::ios::in | std::ios::binary);
-
-	if(!studentFile)
+	if(entries = 0)
 	{
 		std::cout << "\nThere's no records here!\n\n";
-		studentFile.close();
 		return;
 	}
+
+	std::ifstream studentFile("students.txt", std::ios::in | std::ios::binary);
 
 	studentFile.seekg(0, std::ios::end);
 	std::streampos size = studentFile.tellg();
@@ -443,6 +413,35 @@ void Student::searchCareer()
 
 	delete[] array;
 	studentFile.close();
+}
+
+//===
+//	Functions
+//===
+
+int entriesCounter()
+{
+	std::fstream studentFile("students.txt", std::ios::in | std::ios::out | std::ios::binary);
+
+	if (!studentFile)
+	{
+	    // create file if not there
+	    std::ofstream create("students.txt", std::ios::binary);
+	    create.close();
+
+	    // reopen to keep working on it
+	    studentFile.open("students.txt", std::ios::in | std::ios::out | std::ios::binary);
+	    return 0;
+	}
+
+	studentFile.seekg(0, std::ios::end);
+	std::streampos size = studentFile.tellg();
+
+	int valueToReturn = size / sizeof(Student);
+
+	studentFile.close();
+
+	return valueToReturn;
 }
 
 //===
