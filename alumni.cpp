@@ -7,6 +7,12 @@
 #include <fstream>
 #include <string.h>
 
+//	Checks if it's Windows, to use correct function
+
+#ifdef _WIN32
+    #define strcasecmp _stricmp
+#endif
+
 //===
 //	Classes
 //===
@@ -27,6 +33,7 @@ public:
 	void searchCode(int);
 	void orderRecord();
 	void binarySearch();
+	void searchCareer();
 
 	void modify(int);
 	void erase(int);
@@ -82,6 +89,12 @@ int main()
 		case 2:
 			oneStudent.show();
 			break;
+		case 3:
+			oneStudent.binarySearch();
+			break;
+		case 4:
+			oneStudent.searchCareer();
+			break;
 		}
 
 	}while(cursorPosition != 5);
@@ -98,11 +111,11 @@ int main()
 void Student::record()
 {
 	std::cout << "\nEnter student's name:\n";
-	std::cin.getline(name, 16);
+	std::cin.getline(name, 15);
 	std::cout << "\nEnter paternal surname:\n";
-	std::cin.getline(lastNameA, 16);
+	std::cin.getline(lastNameA, 15);
 	std::cout << "\nEnter maternal surname:\n";
-	std::cin.getline(lastNameB, 16);
+	std::cin.getline(lastNameB, 15);
 
 		//	Numerical entries, which are some times problematic.
 			//	Code
@@ -120,9 +133,9 @@ void Student::record()
 	}
 		//	Not numerical
 	std::cout << "\nEnter student's career:\n";
-	std::cin.getline(career, 16);
+	std::cin.getline(career, 15);
 			//	Grades
-	std::cout << "\nEnter student's grade:\n";
+	std::cout << "\nEnter student's average grade:\n";
 	while(true)
 	{
 		std::getline(std::cin, input);
@@ -137,8 +150,9 @@ void Student::record()
 		//	Creation of file
 	//std::ofstream studentFile("students.txt", std::ios::app | std::ios::binary);
 	
-		//	Ordering logic goes here if needd
-	/*studentFile.seekg(0, std::ios::end);
+		//	Ordering logic goes here if needed
+/*
+	studentFile.seekg(0, std::ios::end);
 	std::streampos size = studentFile.tellg();
 
 	if(size != sizeof(Student))
@@ -147,7 +161,7 @@ void Student::record()
 		std::cout << "This file has more than one student record.\n";
 		orderRecord(studentFile);
 	}
-	*/
+*/
 		//	Writing of data into the file
 	//studentFile.write((char*) this, sizeof(*this));
 
@@ -188,6 +202,9 @@ void Student::orderRecord()
 	if(size <= 0)
 	{
 		count = 0;
+		//studentFile.write((char*) this, sizeof(*this));
+		//studentFile.close();
+		//return;
 	}else
 	{
 		count = size / sizeof(Student);
@@ -275,13 +292,13 @@ void Student::show()
 
 		while(studentFile.read((char*)this, sizeof(*this)))
 		{
-			std::cout << "Etry " << count << '\n';
+			std::cout << "Entry " << count << '\n';
 
 		    std::cout << "Name: " << name << " " << lastNameA << " "
 		              << lastNameB << '\n'
 		              << "Code: " << uniqueCode << '\n'
 		              << "Carrer: " << career << '\n'
-		              << "Grade: " << grade << '\n'
+		              << "Average grade: " << grade << '\n'
 		              << "-----------------------------------------\n";
 		    count ++;
 		}
@@ -292,48 +309,140 @@ void Student::show()
 	//	Binary search
 void Student::binarySearch()
 {
-		std::ifstream studentFile("students.txt", std::ios::in | std::ios::binary);
+	std::ifstream studentFile("students.txt", std::ios::in | std::ios::binary);
 
-		if(!studentFile)
-		{
-			std::cout << "\nThere's no records here!\n\n";
-			studentFile.close();
-			return;
-		}
-
-		studentFile.seekg(0, std::ios::end);
-		std::streampos size = studentFile.tellg();
-
-		int arrayLength = size / sizeof(Student);
-		studentFile.clear();
-		studentFile.seekg(0, std::ios::beg);
-
-		int* array = new int[arrayLength];
-		int p;
-		while(studentFile.read((char*)this, sizeof(*this)))
-		{
-			array[i] = uniqueCode;
-			p ++;
-		}
-
-		std::string inputToSearch;
-		int validCode;
-		std::cout << "\nEnter a student's code to search\n";
-		while(true)
-		{
-			std::getline(std::cin, inputToSearch);
-			if(isValidInt(inputToSearch))
-			{
-				validCode = std::stoi(inputToSearch);
-				break;
-			}
-			std::cout << "Invalid code. Try again:\n";
-		}
-
-		//	ContinueHere
-
-		delete[] array;
+	if(!studentFile)
+	{
+		std::cout << "\nThere's no records here!\n\n";
 		studentFile.close();
+		return;
+	}
+
+	studentFile.seekg(0, std::ios::end);
+	std::streampos size = studentFile.tellg();
+
+	int arrayLength = size / sizeof(Student);
+	studentFile.clear();
+	studentFile.seekg(0, std::ios::beg);
+
+	int* array = new int[arrayLength];
+	int p = 0;
+	while(studentFile.read((char*)this, sizeof(*this)))
+	{
+		array[p] = uniqueCode;
+		p ++;
+	}
+
+	std::string inputToSearch;
+	int validCode;
+	std::cout << "\nEnter a student's code to search\n";
+	while(true)
+	{
+		std::getline(std::cin, inputToSearch);
+		if(isValidInt(inputToSearch))
+		{
+			validCode = std::stoi(inputToSearch);
+			break;
+		}
+		std::cout << "Invalid code. Try again:\n";
+	}
+
+	int l = 0;
+	int r = arrayLength - 1;
+	bool found = false;
+	int m;
+	while(l <= r)
+	{
+		m = l + (r - l) / 2;
+
+		if(array[m] < validCode)
+		{
+			l = m + 1;
+		}else if(array[m] > validCode)
+		{
+			r = m - 1;
+		}else
+		{
+			found = true;
+			break;
+		}
+	}
+
+	if(found)
+	{
+		std::cout << "\nMatch found:\tEntry number "
+				  << m + 1 << "\n\n";
+		studentFile.clear();
+		studentFile.seekg(m * sizeof(Student), std::ios::beg);
+		studentFile.read((char*)this, sizeof(*this));
+		std::cout << "Name: " << name << " " << lastNameA << " "
+	              << lastNameB << '\n'
+	              << "Code: " << uniqueCode << '\n'
+	              << "Carrer: " << career << '\n'
+	              << "Average grade: " << grade << '\n'
+	              << "-----------------------------------------\n";
+
+	}else
+	{
+		std::cout << "\nNo match found!\n\n";
+	}
+
+	delete[] array;
+	studentFile.close();
+}
+
+void Student::searchCareer()
+{
+	std::ifstream studentFile("students.txt", std::ios::in | std::ios::binary);
+
+	if(!studentFile)
+	{
+		std::cout << "\nThere's no records here!\n\n";
+		studentFile.close();
+		return;
+	}
+
+	std::cout << "\nEnter a career to search:\n";
+	char searchByCareer[15];
+	std::cin.getline(searchByCareer, 15);
+
+	studentFile.seekg(0, std::ios::end);
+	std::streampos size = studentFile.tellg();
+
+	int count = size / sizeof(Student);
+
+	studentFile.seekg(0, std::ios::beg);
+	studentFile.clear();
+
+	int matches = 0;
+	while(studentFile.read((char*)this, sizeof(*this)))
+	{
+		if(strcasecmp(career, searchByCareer) == 0)
+		{
+			matches ++;
+		}
+	}
+	studentFile.seekg(0, std::ios::beg);
+	studentFile.clear();
+
+	int* array = new int[matches];
+
+	for(int i = 0; i < matches; i ++)
+	{
+		studentFile.seekg(array[i] * sizeof(Student), std::ios::beg);
+		studentFile.read((char*)this, sizeof(*this));
+		std::cout << "\nEntry " << array[i] + 1 << '\n';
+
+		std::cout << "Name: " << name << " " << lastNameA << " "
+		           << lastNameB << '\n'
+		           << "Code: " << uniqueCode << '\n'
+		           << "Carrer: " << career << '\n'
+		           << "Average grade: " << grade << '\n'
+		           << "-----------------------------------------\n";
+	}
+
+	delete[] array;
+	studentFile.close();
 }
 
 //===
